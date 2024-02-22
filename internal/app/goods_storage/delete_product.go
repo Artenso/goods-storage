@@ -9,16 +9,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// AddProduct adds product
-func (i *Implementation) AddProduct(ctx context.Context, req *desc.AddProductRequest) (*desc.AddProductResponse, error) {
+// DeleteProduct deletes product
+func (i *Implementation) DeleteProduct(ctx context.Context, req *desc.DeleteProductRequest) (*desc.DeleteProductResponse, error) {
 	if err := req.ValidateAll(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %s", err.Error())
 	}
 
-	product, err := i.goodsStorageSrv.AddProduct(ctx, converter.ToProductInfo(req))
-	if err != nil {
-		return nil, err
+	if err := i.goodsStorageSrv.DeleteProduct(ctx, req.GetId()); err != nil {
+		return nil, status.Errorf(codes.NotFound, "bad id: %s", err.Error())
 	}
-
-	return converter.ToAddProductResponse(product), nil
+	return converter.ToDeleteProductResponse(), nil
 }

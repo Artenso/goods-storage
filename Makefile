@@ -1,30 +1,14 @@
-.PHONY: generate-simple
-generate-simple:
+.PHONY: generate
+generate:
 	mkdir -p pkg/goods_storage
-	protoc --go_out=pkg/goods_storage --go-grpc_out=pkg/goods_storage api/goods_storage/goods_storage.proto
-
-.PHONY: generate-http
-generate-http:
-	rm -rf pkg/goods_storage/github.com
-	protoc --go_out=pkg/goods_storage --go-grpc_out=pkg/goods_storage \
-	--grpc-gateway_out=pkg/goods_storage --grpc-gateway_opt=logtostderr=true --grpc-gateway_opt generate_unbound_methods=true \
-	api/goods_storage/goods_storage.proto
-
-.PHONY: generate-validate
-generate-validate:
-	rm -rf pkg/goods_storage/github.com
 	protoc --proto_path vendor.protogen --proto_path api/goods_storage \
 	--go_out=pkg/goods_storage --go-grpc_out=pkg/goods_storage \
 	--grpc-gateway_out=pkg/goods_storage --grpc-gateway_opt=logtostderr=true --grpc-gateway_opt generate_unbound_methods=true \
 	--validate_out lang=go:pkg/goods_storage \
 	api/goods_storage/goods_storage.proto
 
-
-PHONY: vendor-proto
-vendor-proto: .vendor-proto
-
-PHONY: .vendor-proto
-.vendor-proto:
+.PHONY: vendor-proto
+vendor-proto:
 		@if [ ! -d vendor.protogen/google ]; then \
 			git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis &&\
 			mkdir -p  vendor.protogen/google/ &&\

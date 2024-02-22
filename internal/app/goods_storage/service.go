@@ -10,6 +10,10 @@ import (
 // IGoodsStorageService сервисный слой
 type IGoodsStorageService interface {
 	AddProduct(ctx context.Context, info *model.ProductInfo) (*model.Product, error)
+	GetProduct(_ context.Context, id int64) (*model.Product, error)
+	ListProduct(_ context.Context, limit, offset int64) ([]*model.Product, error)
+	UpdateProduct(_ context.Context, id int64, info *model.ProductInfo) (*model.Product, error)
+	DeleteProduct(_ context.Context, id int64) error
 }
 
 type Implementation struct {
