@@ -13,20 +13,20 @@ func (r *Repository) UpdateProduct(_ context.Context, id int64, info *model.Prod
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	for i := 0; i < len(r.goods); i++ {
-		if r.goods[i].ID == id {
+	for _, product := range r.goods {
+		if product.ID == id {
 
-			if info.Name != "" {
-				r.goods[i].Info.Name = info.Name
+			if info.Name.Valid {
+				product.Info.Name = info.Name
 			}
 
-			if info.Description != "" {
-				r.goods[i].Info.Description = info.Description
+			if info.Description.Valid {
+				product.Info.Description = info.Description
 			}
 
-			r.goods[i].UpdatedAt.Time = time.Now().UTC()
-			r.goods[i].UpdatedAt.Valid = true
-			return r.goods[i], nil
+			product.UpdatedAt.Time = time.Now().UTC()
+			product.UpdatedAt.Valid = true
+			return product, nil
 		}
 	}
 

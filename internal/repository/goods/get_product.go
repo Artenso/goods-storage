@@ -12,9 +12,9 @@ func (r *Repository) GetProduct(_ context.Context, id int64) (*model.Product, er
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	for i := 0; i < len(r.goods); i++ {
-		if r.goods[i].ID == id {
-			return r.goods[i], nil
+	for _, product := range r.goods {
+		if product.ID == id {
+			return product, nil
 		}
 	}
 

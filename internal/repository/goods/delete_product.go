@@ -10,8 +10,8 @@ func (r *Repository) DeleteProduct(_ context.Context, id int64) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	for i := 0; i < len(r.goods); i++ {
-		if r.goods[i].ID == id {
+	for i, product := range r.goods {
+		if product.ID == id {
 			r.goods = append(r.goods[:i], r.goods[i+1:]...)
 			return nil
 		}

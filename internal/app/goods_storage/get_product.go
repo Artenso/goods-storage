@@ -2,6 +2,7 @@ package goods_storage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Artenso/goods-storage/internal/converter"
 	desc "github.com/Artenso/goods-storage/pkg/goods_storage/github.com/Artenso/goods_storage/pkg/goods_storage"
@@ -17,7 +18,7 @@ func (i *Implementation) GetProduct(ctx context.Context, req *desc.GetProductReq
 
 	product, err := i.goodsStorageSrv.GetProduct(ctx, req.GetId())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "bad id: %s", err.Error())
+		return nil, fmt.Errorf("bad id: %s", err.Error())
 	}
 
 	return converter.ToGetProductResponse(product), nil

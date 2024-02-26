@@ -6,8 +6,8 @@ import (
 )
 
 type ProductInfo struct {
-	Name        string
-	Description string
+	Name        sql.NullString
+	Description sql.NullString
 }
 
 type Product struct {

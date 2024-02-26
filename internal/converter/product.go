@@ -1,17 +1,41 @@
 package converter
 
 import (
+	"database/sql"
+
 	"github.com/Artenso/goods-storage/internal/model"
 	desc "github.com/Artenso/goods-storage/pkg/goods_storage/github.com/Artenso/goods_storage/pkg/goods_storage"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func ToProductInfo(req *desc.AddProductRequest) *model.ProductInfo {
 	return &model.ProductInfo{
-		Name:        req.GetProductInfo().GetName(),
-		Description: req.GetProductInfo().GetDescription(),
+		Name: sql.NullString{
+			String: req.GetProductInfo().GetName(),
+			Valid:  true,
+		},
+		Description: sql.NullString{
+			String: req.GetProductInfo().GetDescription(),
+			Valid:  true,
+		},
 	}
+}
+
+func ToDescProduct(product *model.Product) *desc.Product {
+	descProduct := &desc.Product{
+		Id: product.ID,
+		ProductInfo: &desc.ProductInfo{
+			Name:        product.Info.Name.String,
+			Description: product.Info.Description.String,
+		},
+		CreatedAt: timestamppb.New(product.CreatedAt),
+	}
+
+	if product.UpdatedAt.Valid {
+		descProduct.UpdatedAt = timestamppb.New(product.UpdatedAt.Time)
+	}
+
+	return descProduct
 }
 
 func ToAddProductResponse(product *model.Product) *desc.AddProductResponse {
@@ -23,50 +47,22 @@ func ToAddProductResponse(product *model.Product) *desc.AddProductResponse {
 
 func ToGetProductResponse(product *model.Product) *desc.GetProductResponse {
 
-	if product.UpdatedAt.Valid {
-		return &desc.GetProductResponse{
-			ProductInfo: &desc.ProductInfo{
-				Name:        product.Info.Name,
-				Description: product.Info.Description,
-			},
-			CreatedAt: timestamppb.New(product.CreatedAt),
-			UpdatedAt: timestamppb.New(product.UpdatedAt.Time),
-		}
+	descProduct := &desc.GetProductResponse{
+		Product: ToDescProduct(product),
 	}
-	return &desc.GetProductResponse{
-		ProductInfo: &desc.ProductInfo{
-			Name:        product.Info.Name,
-			Description: product.Info.Description,
-		},
-		CreatedAt: timestamppb.New(product.CreatedAt),
-	}
-}
 
-func ToDeleteProductResponse() *desc.DeleteProductResponse {
-	return &desc.DeleteProductResponse{
-		EmptyStruct: &emptypb.Empty{},
-	}
+	return descProduct
 }
 
 func ToListProductResponse(productsList []*model.Product) *desc.ListProductResponse {
 
-	responseProductsList := make([]*desc.ListProductResponse_Product, 0, len(productsList))
+	responseProductsList := make([]*desc.Product, 0, len(productsList))
 
-	for i := 0; i < len(productsList); i++ {
-		product := desc.ListProductResponse_Product{
-			Id: productsList[i].ID,
-			ProductInfo: &desc.ProductInfo{
-				Name:        productsList[i].Info.Name,
-				Description: productsList[i].Info.Description,
-			},
-			CreatedAt: timestamppb.New(productsList[i].CreatedAt),
-		}
+	for _, product := range productsList {
 
-		if productsList[i].UpdatedAt.Valid {
-			product.UpdatedAt = timestamppb.New(productsList[i].UpdatedAt.Time)
-		}
+		descProduct := ToDescProduct(product)
 
-		responseProductsList = append(responseProductsList, &product)
+		responseProductsList = append(responseProductsList, descProduct)
 	}
 
 	return &desc.ListProductResponse{
@@ -76,16 +72,22 @@ func ToListProductResponse(productsList []*model.Product) *desc.ListProductRespo
 
 func ToProductInfoForUpdate(req *desc.UpdateProductRequest) *model.ProductInfo {
 	return &model.ProductInfo{
-		Name:        req.GetName(),
-		Description: req.GetDescription(),
+		Name: sql.NullString{
+			String: req.GetName().GetValue(),
+			Valid:  req.GetName() != nil,
+		},
+		Description: sql.NullString{
+			String: req.GetDescription().GetValue(),
+			Valid:  req.GetDescription() != nil,
+		},
 	}
 }
 
 func ToUpdateProductResponse(product *model.Product) *desc.UpdateProductResponse {
 	return &desc.UpdateProductResponse{
 		ProductInfo: &desc.ProductInfo{
-			Name:        product.Info.Name,
-			Description: product.Info.Description,
+			Name:        product.Info.Name.String,
+			Description: product.Info.Description.String,
 		},
 		CreatedAt: timestamppb.New(product.CreatedAt),
 		UpdatedAt: timestamppb.New(product.UpdatedAt.Time),

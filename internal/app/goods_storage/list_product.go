@@ -2,6 +2,7 @@ package goods_storage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Artenso/goods-storage/internal/converter"
 	desc "github.com/Artenso/goods-storage/pkg/goods_storage/github.com/Artenso/goods_storage/pkg/goods_storage"
@@ -17,7 +18,7 @@ func (i *Implementation) ListProduct(ctx context.Context, req *desc.ListProductR
 
 	productsList, err := i.goodsStorageSrv.ListProduct(ctx, req.GetLimit(), req.GetOffset())
 	if err != nil {
-		return nil, status.Errorf(codes.OutOfRange, "bad offset: %s", err.Error())
+		return nil, fmt.Errorf("bad offset: %s", err.Error())
 	}
 	return converter.ToListProductResponse(productsList), nil
 }
