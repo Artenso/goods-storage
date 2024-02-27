@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package github.com.Artenso.goods_storage.api.goods_storage;
+
+option go_package = "github.com/Artenso/goods_storage/pkg/goods_storage";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+import "google/protobuf/wrappers.proto";
+
+service GoodsStorage  {
+  rpc AddProduct(AddProductRequest) returns (AddProductResponse);
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  rpc ListProduct(ListProductRequest) returns (ListProductResponse);
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse);
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty);
+}
+
+message ProductInfo{
+  string name = 1 [(validate.rules).string.min_len = 3];
+  string description = 2 [(validate.rules).string.min_len = 5];
+}
+
+message Product{
+  int64 id = 1;
+  ProductInfo productInfo = 2;
+  google.protobuf.Timestamp createdAt = 3;
+  google.protobuf.Timestamp updatedAt = 4;
+}
+
+message AddProductRequest {
+  ProductInfo productInfo = 1;
+}
+
+message AddProductResponse {
+  int64 id = 1;
+  google.protobuf.Timestamp createdAt = 2;
+  google.protobuf.Timestamp updatedAt = 3;
+}
+
+message GetProductRequest{
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+message GetProductResponse{
+  Product product = 1;
+}
+
+message ListProductRequest{
+  int64 limit = 1 [(validate.rules).int64.gt = 0];
+  int64 offset = 2 [(validate.rules).int64.gte = 0];
+}
+
+message ListProductResponse{
+  repeated  Product productsList = 1;
+}
+
+message UpdateProductRequest{
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  google.protobuf.StringValue name = 2;
+  google.protobuf.StringValue description = 3;
+}
+
+message UpdateProductResponse{
+  ProductInfo productInfo = 1;
+  google.protobuf.Timestamp createdAt = 2;
+  google.protobuf.Timestamp updatedAt = 3;
+}
+
+message DeleteProductRequest{
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
