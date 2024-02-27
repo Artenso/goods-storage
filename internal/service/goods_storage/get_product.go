@@ -4,9 +4,15 @@ import (
 	"context"
 
 	"github.com/Artenso/goods-storage/internal/model"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // GetProduct implements goods_storage.IGoodsStorageService.
 func (s *Service) GetProduct(ctx context.Context, id int64) (*model.Product, error) {
-	return s.goodsRepository.GetProduct(ctx, id)
+	product, err := s.goodsRepository.GetProduct(ctx, id)
+	if s.IsNotFoundError(err) {
+		return product, status.Errorf(codes.NotFound, "bad id: %v, %s", id, err)
+	}
+	return product, err
 }

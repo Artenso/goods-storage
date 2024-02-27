@@ -2,7 +2,8 @@ package goods
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/Artenso/goods-storage/internal/model"
 )
 
 // DeleteProduct implements goods_storage.IGoodsRepository.
@@ -17,5 +18,5 @@ func (r *Repository) DeleteProduct(_ context.Context, id int64) error {
 		}
 	}
 
-	return fmt.Errorf("no such product with id: %v", id)
+	return model.ErrProductNotFound
 }

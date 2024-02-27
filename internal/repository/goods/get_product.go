@@ -2,7 +2,6 @@ package goods
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Artenso/goods-storage/internal/model"
 )
@@ -18,5 +17,5 @@ func (r *Repository) GetProduct(_ context.Context, id int64) (*model.Product, er
 		}
 	}
 
-	return nil, fmt.Errorf("no such product with id: %v", id)
+	return nil, model.ErrProductNotFound
 }

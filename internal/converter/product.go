@@ -10,14 +10,8 @@ import (
 
 func ToProductInfo(req *desc.AddProductRequest) *model.ProductInfo {
 	return &model.ProductInfo{
-		Name: sql.NullString{
-			String: req.GetProductInfo().GetName(),
-			Valid:  true,
-		},
-		Description: sql.NullString{
-			String: req.GetProductInfo().GetDescription(),
-			Valid:  true,
-		},
+		Name:        req.GetProductInfo().GetName(),
+		Description: req.GetProductInfo().GetDescription(),
 	}
 }
 
@@ -25,8 +19,8 @@ func ToDescProduct(product *model.Product) *desc.Product {
 	descProduct := &desc.Product{
 		Id: product.ID,
 		ProductInfo: &desc.ProductInfo{
-			Name:        product.Info.Name.String,
-			Description: product.Info.Description.String,
+			Name:        product.Info.Name,
+			Description: product.Info.Description,
 		},
 		CreatedAt: timestamppb.New(product.CreatedAt),
 	}
@@ -70,8 +64,8 @@ func ToListProductResponse(productsList []*model.Product) *desc.ListProductRespo
 	}
 }
 
-func ToProductInfoForUpdate(req *desc.UpdateProductRequest) *model.ProductInfo {
-	return &model.ProductInfo{
+func ToProductInfoForUpdate(req *desc.UpdateProductRequest) *model.UpdateProductInfo {
+	return &model.UpdateProductInfo{
 		Name: sql.NullString{
 			String: req.GetName().GetValue(),
 			Valid:  req.GetName() != nil,
@@ -86,8 +80,8 @@ func ToProductInfoForUpdate(req *desc.UpdateProductRequest) *model.ProductInfo {
 func ToUpdateProductResponse(product *model.Product) *desc.UpdateProductResponse {
 	return &desc.UpdateProductResponse{
 		ProductInfo: &desc.ProductInfo{
-			Name:        product.Info.Name.String,
-			Description: product.Info.Description.String,
+			Name:        product.Info.Name,
+			Description: product.Info.Description,
 		},
 		CreatedAt: timestamppb.New(product.CreatedAt),
 		UpdatedAt: timestamppb.New(product.UpdatedAt.Time),

@@ -2,14 +2,13 @@ package goods
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Artenso/goods-storage/internal/model"
 )
 
 // UpdateProduct implements goods_storage.IGoodsRepository.
-func (r *Repository) UpdateProduct(_ context.Context, id int64, info *model.ProductInfo) (*model.Product, error) {
+func (r *Repository) UpdateProduct(_ context.Context, id int64, info *model.UpdateProductInfo) (*model.Product, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -17,11 +16,11 @@ func (r *Repository) UpdateProduct(_ context.Context, id int64, info *model.Prod
 		if product.ID == id {
 
 			if info.Name.Valid {
-				product.Info.Name = info.Name
+				product.Info.Name = info.Name.String
 			}
 
 			if info.Description.Valid {
-				product.Info.Description = info.Description
+				product.Info.Description = info.Description.String
 			}
 
 			product.UpdatedAt.Time = time.Now().UTC()
@@ -30,5 +29,5 @@ func (r *Repository) UpdateProduct(_ context.Context, id int64, info *model.Prod
 		}
 	}
 
-	return nil, fmt.Errorf("no such product with id: %v", id)
+	return nil, model.ErrProductNotFound
 }

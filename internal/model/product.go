@@ -6,6 +6,11 @@ import (
 )
 
 type ProductInfo struct {
+	Name        string
+	Description string
+}
+
+type UpdateProductInfo struct {
 	Name        sql.NullString
 	Description sql.NullString
 }

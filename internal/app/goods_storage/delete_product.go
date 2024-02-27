@@ -2,7 +2,6 @@ package goods_storage
 
 import (
 	"context"
-	"fmt"
 
 	desc "github.com/Artenso/goods-storage/pkg/goods_storage/github.com/Artenso/goods_storage/pkg/goods_storage"
 	"google.golang.org/grpc/codes"
@@ -17,7 +16,7 @@ func (i *Implementation) DeleteProduct(ctx context.Context, req *desc.DeleteProd
 	}
 
 	if err := i.goodsStorageSrv.DeleteProduct(ctx, req.GetId()); err != nil {
-		return nil, fmt.Errorf("bad id: %s", err.Error())
+		return nil, err
 	}
 	return &emptypb.Empty{}, nil
 }
