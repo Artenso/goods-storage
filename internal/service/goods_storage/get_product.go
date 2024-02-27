@@ -11,8 +11,11 @@ import (
 // GetProduct implements goods_storage.IGoodsStorageService.
 func (s *Service) GetProduct(ctx context.Context, id int64) (*model.Product, error) {
 	product, err := s.goodsRepository.GetProduct(ctx, id)
-	if s.IsNotFoundError(err) {
-		return product, status.Errorf(codes.NotFound, "bad id: %v, %s", id, err)
+	if err != nil {
+		if s.IsNotFoundError(err) {
+			return nil, status.Errorf(codes.NotFound, "bad id: %v, %s", id, err)
+		}
+		return nil, err
 	}
-	return product, err
+	return product, nil
 }
