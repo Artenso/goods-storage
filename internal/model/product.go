@@ -6,8 +6,8 @@ import (
 )
 
 type ProductInfo struct {
-	Name        string
-	Description string
+	Name        string `db:"name"`
+	Description string `db:"description"`
 }
 
 type UpdateProductInfo struct {
@@ -16,8 +16,8 @@ type UpdateProductInfo struct {
 }
 
 type Product struct {
-	ID        int64
-	Info      ProductInfo
-	CreatedAt time.Time
-	UpdatedAt sql.NullTime
+	ID        int64        `db:"id"`
+	Info      ProductInfo  `db:""`
+	CreatedAt time.Time    `db:"created_at"`
+	UpdatedAt sql.NullTime `db:"updated_at"`
 }
