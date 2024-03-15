@@ -26,7 +26,7 @@ type Repository struct {
 	dbConn *pgx.Conn
 }
 
-// New ...
+// New creates new repository object
 func New(dbConn *pgx.Conn) *Repository {
 	return &Repository{
 		dbConn: dbConn,
@@ -46,25 +46,55 @@ func (r *Repository) AddProduct(ctx context.Context, info *model.ProductInfo) (*
 		return nil, errors.Wrap(err, "failed to build sql query")
 	}
 
-	res := new(model.Product)
+	product := new(model.Product)
 
-	if err = r.dbConn.QueryRow(ctx, query, args...).Scan(&res.ID, &res.CreatedAt); err != nil {
+	if err = r.dbConn.QueryRow(ctx, query, args...).Scan(&product.ID, &product.CreatedAt); err != nil {
 		return nil, errors.Wrap(err, "failed to insert product to db")
 	}
 
-	res.Info = *info
+	product.Info = *info
 
-	return res, nil
+	return product, nil
 }
 
+// GetProduct gets product by id
 func (r *Repository) GetProduct(ctx context.Context, id int64) (*model.Product, error) {
-	return nil, nil
+	builder := sq.Select("*").
+		From(table).
+		Where(sq.Eq{idCol: id}).
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build sql query")
+	}
+
+	product := new(model.Product)
+
+	err = r.dbConn.QueryRow(ctx, query, args...).Scan(
+		&product.ID,
+		&product.Info.Name,
+		&product.Info.Description,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, model.ErrProductNotFound
+		}
+		return nil, err
+	}
+
+	return product, nil
 }
+
+// ListProduct gets products from offset to limit
 func (r *Repository) ListProduct(ctx context.Context, limit, offset int64) ([]*model.Product, error) {
 	builder := sq.Select("*").
 		From(table).
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).
+		GroupBy(idCol).
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := builder.ToSql()
@@ -78,29 +108,77 @@ func (r *Repository) ListProduct(ctx context.Context, limit, offset int64) ([]*m
 		return nil, err
 	}
 
-	//res := make([]*model.Product, 0, limit-offset)
-	//
-	//for rows.Next() {
-	//	product := new(model.Product)
-	//	err = rows.Scan(&product.ID, &product.Info.Name, &product.Info.Description, &product.CreatedAt, &product.UpdatedAt)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	res = append(res, product)
-	//}
+	var product []*model.Product
 
-	var res []*model.Product
-
-	if err = pgxscan.ScanAll(&res, rows); err != nil {
+	if err = pgxscan.ScanAll(&product, rows); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return product, nil
 }
+
+// UpdateProduct updates product name or/and description
 func (r *Repository) UpdateProduct(ctx context.Context, id int64, info *model.UpdateProductInfo) (*model.Product, error) {
-	return nil, nil
+	builder := sq.Update(table)
+
+	if info.Name.Valid {
+		builder = builder.Set(nameCol, info.Name.String)
+	}
+	if info.Description.Valid {
+		builder = builder.Set(descriptionCol, info.Description.String)
+	}
+
+	builder = builder.
+		Set(updatedAtCol, time.Now().UTC()).
+		Where(sq.Eq{idCol: id}).
+		Suffix("RETURNING *").
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := builder.ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build sql query")
+	}
+
+	product := new(model.Product)
+
+	err = r.dbConn.QueryRow(ctx, query, args...).Scan(
+		&product.ID,
+		&product.Info.Name,
+		&product.Info.Description,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, model.ErrProductNotFound
+		}
+		return nil, err
+	}
+
+	return product, nil
 }
+
+// DeleteProduct deletes product from database
 func (r *Repository) DeleteProduct(ctx context.Context, id int64) error {
+	builder := sq.Delete(table).
+		Where(sq.Eq{idCol: id}).
+		Suffix("RETURNING id").
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to build sql query")
+	}
+
+	var deletedID uint64
+
+	err = r.dbConn.QueryRow(ctx, query, args...).Scan(&deletedID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrProductNotFound
+		}
+		return err
+	}
 	return nil
 }

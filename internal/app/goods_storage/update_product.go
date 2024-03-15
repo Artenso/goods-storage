@@ -11,7 +11,7 @@ import (
 
 // UpdateProduct updates product name and description
 func (i *Implementation) UpdateProduct(ctx context.Context, req *desc.UpdateProductRequest) (*desc.UpdateProductResponse, error) {
-	if err := req.Validate(); err != nil {
+	if err := req.ValidateAll(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %s", err.Error())
 	}
 
