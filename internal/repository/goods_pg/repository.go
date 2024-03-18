@@ -69,23 +69,18 @@ func (r *Repository) GetProduct(ctx context.Context, id int64) (*model.Product, 
 		return nil, errors.Wrap(err, "failed to build sql query")
 	}
 
-	product := new(model.Product)
+	var products []*model.Product
 
-	err = r.dbConn.QueryRow(ctx, query, args...).Scan(
-		&product.ID,
-		&product.Info.Name,
-		&product.Info.Description,
-		&product.CreatedAt,
-		&product.UpdatedAt,
-	)
+	row, err := r.dbConn.Query(ctx, query, args...)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, model.ErrProductNotFound
-		}
 		return nil, err
 	}
 
-	return product, nil
+	if err = pgxscan.ScanAll(&products, row); err != nil {
+		return nil, err
+	}
+
+	return products[0], nil
 }
 
 // ListProduct gets products from offset to limit
@@ -108,18 +103,22 @@ func (r *Repository) ListProduct(ctx context.Context, limit, offset int64) ([]*m
 		return nil, err
 	}
 
-	var product []*model.Product
+	var products []*model.Product
 
-	if err = pgxscan.ScanAll(&product, rows); err != nil {
+	if err = pgxscan.ScanAll(&products, rows); err != nil {
 		return nil, err
 	}
 
-	return product, nil
+	return products, nil
 }
 
 // UpdateProduct updates product name or/and description
 func (r *Repository) UpdateProduct(ctx context.Context, id int64, info *model.UpdateProductInfo) (*model.Product, error) {
-	builder := sq.Update(table)
+	builder := sq.Update(table).
+		Set(updatedAtCol, time.Now().UTC()).
+		Where(sq.Eq{idCol: id}).
+		Suffix("RETURNING *").
+		PlaceholderFormat(sq.Dollar)
 
 	if info.Name.Valid {
 		builder = builder.Set(nameCol, info.Name.String)
@@ -128,35 +127,24 @@ func (r *Repository) UpdateProduct(ctx context.Context, id int64, info *model.Up
 		builder = builder.Set(descriptionCol, info.Description.String)
 	}
 
-	builder = builder.
-		Set(updatedAtCol, time.Now().UTC()).
-		Where(sq.Eq{idCol: id}).
-		Suffix("RETURNING *").
-		PlaceholderFormat(sq.Dollar)
-
 	query, args, err := builder.ToSql()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build sql query")
 	}
 
-	product := new(model.Product)
+	var products []*model.Product
 
-	err = r.dbConn.QueryRow(ctx, query, args...).Scan(
-		&product.ID,
-		&product.Info.Name,
-		&product.Info.Description,
-		&product.CreatedAt,
-		&product.UpdatedAt,
-	)
+	row, err := r.dbConn.Query(ctx, query, args...)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, model.ErrProductNotFound
-		}
 		return nil, err
 	}
 
-	return product, nil
+	if err = pgxscan.ScanAll(&products, row); err != nil {
+		return nil, err
+	}
+
+	return products[0], nil
 }
 
 // DeleteProduct deletes product from database
@@ -175,10 +163,8 @@ func (r *Repository) DeleteProduct(ctx context.Context, id int64) error {
 
 	err = r.dbConn.QueryRow(ctx, query, args...).Scan(&deletedID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return model.ErrProductNotFound
-		}
 		return err
 	}
+
 	return nil
 }

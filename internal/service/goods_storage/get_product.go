@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Artenso/goods-storage/internal/model"
+	"github.com/jackc/pgx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -12,8 +13,8 @@ import (
 func (s *Service) GetProduct(ctx context.Context, id int64) (*model.Product, error) {
 	product, err := s.goodsRepository.GetProduct(ctx, id)
 	if err != nil {
-		if s.IsNotFoundError(err) {
-			return nil, status.Errorf(codes.NotFound, "bad id: %v, %s", id, err)
+		if err == pgx.ErrNoRows {
+			return nil, status.Errorf(codes.InvalidArgument, "%s", model.ErrProductNotFound.Error())
 		}
 		return nil, err
 	}
