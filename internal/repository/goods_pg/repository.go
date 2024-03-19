@@ -69,18 +69,18 @@ func (r *Repository) GetProduct(ctx context.Context, id int64) (*model.Product, 
 		return nil, errors.Wrap(err, "failed to build sql query")
 	}
 
-	var products []*model.Product
+	product := new(model.Product)
 
 	row, err := r.dbConn.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = pgxscan.ScanAll(&products, row); err != nil {
+	if err = pgxscan.ScanOne(product, row); err != nil {
 		return nil, err
 	}
 
-	return products[0], nil
+	return product, nil
 }
 
 // ListProduct gets products from offset to limit
@@ -133,18 +133,18 @@ func (r *Repository) UpdateProduct(ctx context.Context, id int64, info *model.Up
 		return nil, errors.Wrap(err, "failed to build sql query")
 	}
 
-	var products []*model.Product
+	product := new(model.Product)
 
 	row, err := r.dbConn.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = pgxscan.ScanAll(&products, row); err != nil {
+	if err = pgxscan.ScanOne(product, row); err != nil {
 		return nil, err
 	}
 
-	return products[0], nil
+	return product, nil
 }
 
 // DeleteProduct deletes product from database
@@ -159,9 +159,9 @@ func (r *Repository) DeleteProduct(ctx context.Context, id int64) error {
 		return errors.Wrap(err, "failed to build sql query")
 	}
 
-	var deletedID uint64
+	product := new(model.Product)
 
-	err = r.dbConn.QueryRow(ctx, query, args...).Scan(&deletedID)
+	err = r.dbConn.QueryRow(ctx, query, args...).Scan(&product.ID)
 	if err != nil {
 		return err
 	}

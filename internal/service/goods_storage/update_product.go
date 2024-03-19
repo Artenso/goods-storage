@@ -13,8 +13,8 @@ import (
 func (s *Service) UpdateProduct(ctx context.Context, id int64, info *model.UpdateProductInfo) (*model.Product, error) {
 	product, err := s.goodsRepository.UpdateProduct(ctx, id, info)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, status.Errorf(codes.InvalidArgument, "%s", model.ErrProductNotFound.Error())
+		if err.Error() == pgx.ErrNoRows.Error() {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid request: bad id: %s", model.ErrProductNotFound.Error())
 		}
 		return nil, err
 	}
