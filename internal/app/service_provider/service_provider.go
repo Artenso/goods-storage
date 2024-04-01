@@ -24,7 +24,7 @@ func newServiceProvider() *serviceProvider {
 
 func (s *serviceProvider) getDbConn(ctx context.Context) *pgx.Conn {
 	if s.dbConn == nil {
-		dbDSN := "postgres://postgres:postgres@localhost:5432/goods_storage"
+		dbDSN := "postgres://postgres:postgres@db:5432/goods_storage"
 		conn, err := pgx.Connect(ctx, dbDSN)
 		if err != nil {
 			log.Fatalf("failed to init db connection: %s", err.Error())
